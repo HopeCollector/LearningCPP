@@ -1,0 +1,35 @@
+#ifndef _VECTOR_H_
+#define _VECTOR_H_
+
+namespace VECTOR
+{
+  class vector
+  {
+  private:
+    enum Mode {RECT, POL};
+    double x, y;
+    double mag, ang;
+    void set_x();
+    void set_y();
+    void set_mag();
+    void set_ang();
+    
+  public:
+    vector();
+    vector(double, double, int modle = RECT);
+    ~vector();
+    double xval() {return x;}
+    double yval() {return y;}
+    double magval() {return mag;}
+    double angval() {return ang;}
+    void rect_mode();
+    void pol_mode();
+    //运算符重载
+    //语法：
+    //operator <运算符> (参数);
+    vector operator
+  }
+}
+
+
+#endif

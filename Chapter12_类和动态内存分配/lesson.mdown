@@ -1,0 +1,15 @@
+##Chapter12 学到的套路
+
+* 如何重载'>>' *
+'''c++
+
+std::istream & operator >> (std::istream & is, const String & s)
+{
+	char temp [String::CINLIM];
+	is.getline(temp, Sting::CINLIM);
+
+'''
+这只是一部分，但是目的已经达到了
+对于String的输入，我一直很头疼的是，如何控制用户输入的文字数量
+现在问题解决了，一次最多输入80个字符，多余的都会被扔掉
+

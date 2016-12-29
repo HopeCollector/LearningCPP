@@ -30,6 +30,7 @@ public:
 	String & operator = (const String &);
 	// 将已有的对象复制给另一个对象时,将使用重载的赋值运算符
 	String & operator = (const char*);
+	// 对于需要深度复制的类，定义一个赋值运算符是非常有必要的
 	friend bool operator > (const String & , const String &);
 	friend bool operator < (const String & , const String &);
 	friend bool operator == (const String & , const String &);

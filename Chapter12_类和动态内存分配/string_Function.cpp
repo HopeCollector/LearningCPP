@@ -34,6 +34,7 @@ String::String(const char* ctr)
 	iLength = strlen(ctr);
 	name = new  char [iLength +1];
 	strcpy(ctr, name);
+	// cout << name << " created\n";//debug
 }
 
 String::String(const String & s)
@@ -47,15 +48,17 @@ String::String(const String & s)
 String::String()
 {
 	iLength = 0;
-	name = nullptr;
-// nullptr 是 c++ 用后置类型做出来的空指针，比 NULL 好用
+	name = new char[1];
+	strcpy("\0", name);
 	num_string++;
 }
 
 String::~String()
 {
 	num_string--;
+	// cout << name << "deleted\n";//debug
 	delete [] name;
+	// new和delete的类型一定要匹配（这不是废话么）
 }
 
 char& String::operator [] (const int i)
@@ -103,7 +106,8 @@ bool operator < (const String & s1, const String & s2)
 
 bool operator == (const String & s1, const String & s2)
 {
-	return (std::strcmp(s1.name, s2.name) == 0);
+	bool flag = (std::strcmp(s1.name, s2.name) == 0);
+	return flag;
 }
 
 std::ostream & operator << (std::ostream & os, const String & s)

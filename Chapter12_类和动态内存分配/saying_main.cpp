@@ -25,7 +25,10 @@ int main()
 		cin.get();
 	}
 
-	for(int i = 0; saying[i].Length(); i++)
+	for(int i = 0; !(saying[i] == "\0"); i++)
+		// 我没重载！=运算符，只能出此下策
+		// 绝对不可以用‘\0’，因为我的函数进行的类型转换只限于字符串，按照‘\0’
+		// 的套路，那就变成了NULL指针，这种指针的内存是不可读的
 	{
 		cout << "here are what you entered\n";
 		cout << saying[i] << endl;
@@ -34,9 +37,9 @@ int main()
 	<< saying[0][0] << " to " << "r\n";
 	saying[0][0] = 'r';
 	cout << "Done!\n";
-	cout << saying[0];
+	cout << saying[0] << endl;
 
-	for (int i = 0; saying[i].Length(); i++)
+	for (int i = 0; !(saying[i] == "\0"); i++)
 	{
 		if(saying[max] < saying[i])
 			max = i;

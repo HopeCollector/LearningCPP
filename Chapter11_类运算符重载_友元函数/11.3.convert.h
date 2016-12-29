@@ -12,19 +12,17 @@ private:
 public:
 	Snake();
 	Snake(std::string ,const int a = 5);
-	Snake(const int);
 	~Snake();
 	int bodylength(){ return length;}
 	void grow() { length++; }
+	operator int ();
+	// 隐式转换函数,也可以显示调用
+	explicit operator std::string ();
+	// 要求显示使用转换函数
+	const std::string & operator = (const std::string &);
 
 	friend std::ostream & operator << (std::ostream &, const Snake &);
-	//如果不返回引用
+	// 如果不返回引用
 	// 编译都过不了，cout，cin，cerr这样的对象不能按值传递
-	operator int ();
-	explicit operator std::string ();
-	//要求显示使用转换函数
-	const std::string & operator = (const std::string &);
-	
 };
-
 #endif

@@ -14,11 +14,6 @@ Snake::Snake(std::string crt, const int a)
 	length = a;
 }
 
-Snake::Snake(const int a)
-{
-	length = a;
-}
-
 Snake::~Snake()
 {
 }

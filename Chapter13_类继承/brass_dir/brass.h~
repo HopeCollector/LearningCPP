@@ -1,0 +1,45 @@
+#include <string>
+
+class Brass
+{
+ private:
+  std::string first_name;
+  std::string last_name;
+  int id;
+  double total;
+
+ public:
+  Brass(const std::string f_name = "none",
+	const std::string l_name = "none",
+	unsigned int account = 0,
+	double tl = 0);
+  bool withdraw (double);
+  void deposit (double);
+  double total_left() {return total;}
+  void showaccount();
+};
+
+class BrassPlus : Brass		/* 派生类不能直接访问基类的成员，只能通过公共声明的函数访问 */
+{
+ private:
+  double overdraw_max;
+  double overdraw_rate;
+  double overdraw_total;
+
+ public:
+  BrassPlus(double max = 500,
+	    double rate = 0.11125,
+	    double total = 0,
+	    const std::string f_name = "none",
+	    const std::string l_name = "none",
+	    unsigned int account = 0,
+	    double tl = 0);
+  BrassPlus(double max,
+	    double rate,
+	    double total,
+	    const Brass & bs); 	/* 血的教训，设置默认值的参数后面的所有参数都必须设置默认值 */
+  double total_owe() {return overdraw_total;}
+  double max_owe() {return overdraw_max;}
+  bool withdraw(double);
+  void showaccount();
+};

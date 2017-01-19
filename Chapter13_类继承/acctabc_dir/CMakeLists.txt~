@@ -1,0 +1,3 @@
+cmake-minimum-required (VERSION 3.0)
+project(brass)
+add-executable(brass acctabc.cpp abc_main.cpp)

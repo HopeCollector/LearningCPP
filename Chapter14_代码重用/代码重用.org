@@ -1,0 +1,443 @@
+* has-a 关系
+1. has-a 关系不会继承基类的接口，所有基类的方法都必须通过派生类的方法
+   访问.
+2. 实现 has-a 关系，有两种方法
+   1. 包含
+   2. 私有继承
+3. 所有的 has-a 关系都不会继承基类的方法和接口，只能被派生类方法能在内部
+   调用
+4. 一般情况下使用包含而不是私有继承，包含可以使用更多的基于同一个基类
+   创建的对象
+** 初始化顺序
+- 当初始化列表中包含多个项目时，这些项目被初始化的顺序为他们被声明的顺
+  序（和在 =private= 中的顺序有关系）
+
+* 私有继承
+关于私有类继承的语法，大概都长这样子
+  #+BEGIN_SRC C++
+    class Student : private std::string, private std::valarray<double>
+    {
+      ...
+    };
+  #+END_SRC
+所有这样声明类组件，都没有自己的名字，各种情况的处理方法如下。
+** 初始化基类组件
+派生类的构造函数因为使用不了类组件（没名字），导致其处于一个很尴尬的位
+置，解决方法如下
+
+#+BEGIN_SRC C++
+  Student (const char* str, const double* pd, int n):
+    std::string(str), ArrayDb(pd, n) {}
+#+END_SRC
+
+因为没有成员名字，所以干脆用类名字。
+不过还有一个问题，既然是用了类名字，那就说明一个对象里只能保存一个由该
+类表示的成员？可是如果我希望在一个对象中用基类表达多个成员怎么办？
+** 访问基类方法
+没办法用成员名字调用基类方法的日子真难过啊。。。
+解决方法如下
+
+#+BEGIN_SRC C++
+  double Studend::Average() cosnt
+  {
+    if(ArrayDb::size() > 0)
+      return ArrayDb::sum() / AttayDb::size();
+    else
+      return 0;
+  }
+#+END_SRC
+
+直接把成员名字换成类名，再用作用域解析运算直接调用方法就好了。
+问题在于，对待多个基于同一个类创建的类成员调用函数时怎么办？
+** 访问基类对象
+如何直接访问基于基类创建的对象？本来能用变量名字的！！！！
+解决方法如下
+
+#+BEGIN_SRC C++
+  const std::string & Student::name () const
+  {
+    return (const std::string &) *this;
+  }
+#+END_SRC
+
+通过强制类型转换，派生类会被转换成相应的基类对象。
+这只适用于基于基类只创建一个对成员。
+** 访问基类的友元函数
+友元函数能直接访问私有成员，问题在于，私有继承的基类组件根本不在私有部
+分，他们根本不在任何部分！！！怎么访问他们？
+解决方法
+
+#+BEGIN_SRC C++
+  ostream & operator << (ostream & os, Student & stu)
+  {
+    os << "name : " << (const std::string &) stu << std::endl;
+  }
+#+END_SRC
+
+1. 显式定义出对象的名字
+2. 强制转换
+* 保护继承，私有继承，公有继承
+** 保护继承是个什么玩意
+- 保护继承使得派生类将基类的公有成员和私有成员都变成保护成员，当使用第
+  三代类时，它可以使用基类的接口，但是私有继承就不行
+** 三者关系对比
+| 特征             | 公有继承             | 保护继承             | 私有继承             |
+|------------------+----------------------+----------------------+----------------------|
+| 公有成员变成     | 派生类的公有成员     | 派生类的保护成员     | 派生类的私有成员     |
+| 保护成员变成     | 派生类的保护成员     | 派生类的保护成员     | 派生类的私有成员     |
+| 私有成员变成     | 只能通过基类接口访问 | 只能通过基类接口访问 | 只能通过基类接口访问 |
+| 能否隐式向上转换 | 是                   | 是                   | 否                    |
+
+只有派生类基于基类创建的成员才能对基类的私有成员进行访问，而第三代类根
+本无法访问基类的任何私有成员
+** 使用 =using= 重新定义访问权限
+使用私有继承，保护继承时，基类的公有成员不能在派生类外部方便的使用，一
+般情况下只能由派生类定义的公有接口调用。
+下面是一种方便的解决方法
+
+#+BEGIN_SRC C++
+  class Student : private string, private valarray
+  {
+  public :
+    using std::valarray<double>::min();
+    using std::valarray<double>::max();
+  
+  }
+#+END_SRC
+
+不需要处理函数的返回类型或者函数的特征标，只要用声明使用某些函数就可以
+了
+* 多重继承
+多重继承指的是派生类由多个基类组成，一般是公有继承（is-a关系）
+** 虚基类
+和虚函数没啥关系，没法类比。
+虚基类出现的意义是保证基于同一个基类创建的两个派生类在组合成第三代类的
+时候不会重复使用基类。
+举个例子：
+基类：食物
+派生类：小麦 ：公有：食物
+派生类：鸡蛋 ：公有：食物
+派生类：鸡蛋面 ：公有：小麦，公有：鸡蛋
+如果使用派生类鸡蛋面时，将会创建两个基类食物来存储食物，但实际上用一个
+就可以了，这时只能使用虚基类。
+语法如下，大概长这个样子
+
+#+BEGIN_SRC C++
+  class food
+  {
+  private:
+    int i;
+  public:
+    food(int n = 0):
+      i(n) {}
+  };
+
+  class corn : virtual public food
+  {
+  private:
+    int i;
+  public:
+    cron(int n = 0, int m = 0):
+      food(n), i(m) {}
+  };
+
+  class egg : virtual public food
+  {
+  private:
+    int i;
+  public:
+    egg(int n = 0, int m = 0)
+      food(n), i(m) {}
+  };
+
+  class noodles : public cron, public egg
+  {
+  private:
+    int i;
+  public:
+    noodles(const food & a, int b = 0, int c = 0, int d = 0):
+      food(a), corn(a, b), egg(a, c), i(d) {}
+    //这是虚基类特有的语法，先用基类 food创建对象，之后的初始化因为声明的时候用的都是虚基类，这将阻止第二代派生类将值传递给基类，如果删掉 food（a）基类food将用默认构造函数创建一个对象保存数据
+  };
+#+END_SRC
+
+*** 虚基类与非虚基类混合使用
+声明了共同虚基类的类将共用一个基类对象，非虚基类将各自创建一个基类对象
+
+*** 虚基类和支配
+派生类中重新定义的函数，在第三代类调用，不使用作用域解析运算符的情况下
+将使用派生类的函数（与访问规则无关，即即使函数是私有成员也义无反顾的尝
+试访问，就是肯定会出错罢了）
+* 类模版
+- 类模版不是定义，是编译器指令，他告诉编译器，按照怎样的方式生成函数
+  - 这表明了，他不能像函数一样，把定义和实现分开，因为模版本身即非定义
+    更非实现，也就是说，它不能实现分离编译。（我日。。。）
+** 定义类模版
+定义大概长这样
+
+#+BEGIN_SRC C++
+  template <typename T>
+  class Test
+  {
+  private:
+    enum {MAX = 10};
+    Type items[MAX];
+    int top;
+  public:
+    bool pop(Type & item);
+    bool push(const Type & item);
+  };
+
+  template <typename T>
+  bool Test<T>::pop(int &item)
+  {
+    if(top > 0)
+      {
+	item = items[--top];
+	return true;
+      }
+    else
+      return false;
+  }
+#+END_SRC
+
+实现函数需要加上一句
+=template <typename T>=
+而且需要对函数实例化
+=bool Test<T>::pop()=
+*** 指针栈
+- 栈的作用是管理，不是创建，千万别搞混了
+- 什么是左值
+  - 对象：一块特定的存储区域被称为对象
+  - 变量：一个对象的名字，有的对象是可以没有名字的
+  - 左值：是一串表达式，这串表达式唯一对应了一个对象
+    - 比如 =i = 10= 中的i就是左值，i是一个表达式，对应了内存中的4个字节
+    - 左值还有其他的特征
+      - 大部分左值都是可以取得地址的
+      - 部分左值可修改，例如给变量赋值
+  - 右值：据说与左值相对的概念，不过我没看出来哪与左值对应，我的解释是，
+    右值表达式是一串表达式计算之后的值，或者是一串包含了常量的表达式，这
+    种东西最大的特点是，取不出地址！
+** 非类型参数
+大概长这样子
+
+#+BEGIN_SRC C++
+  template <typename T, int n>
+  class Test
+  {
+  private:
+    T i[n];
+  public:
+    T & f(int j = 0) {return i[j];}
+  }
+#+END_SRC
+
+其中的 =int n= 就是非类型参数，在声明对象时和 =T= 的用法一样，只不过n
+需要一个值，而不是一个类型。
+非类型参数的类型有限制，仅限于以下四种
+1. 整型
+2. 枚举
+3. 引用
+4. 指针
+** 能上天的模版类啥都能干
+- 允许继承
+- 允许作为其他模版类的参数
+- 允许递归使用模版，比如上面的非类型参数的例子
+  =Test<Test<int, 10>, 10>=
+- 允许为类型参数提供默认值（听起来似乎没啥用，但是标准模版库大量使用这
+  一特性），另外函数模版不允许使用模版参数
+** 模版具体化
+- 隐式实例化
+  声明对象时通过临时指定参数得到实例的声明方法
+  =Test<int, double> temp;=
+- 显式实例化
+  在不声明对象的情况下，利用函数模版提前制作出一个类
+  =template class Test<double, double>=
+  其中 =template class= 是前缀，不能省略
+- 有两种差不多的具体化方法
+  - 显式具体化
+    针对某一种类型给出特殊的处理方法，这和重新定义个类没什么区别
+    =template <> class Test<int, int>=
+  - 部分具体化
+    相对于显式具体化全部给出类型参数的值，部分具体化只给出一部分值，剩
+    下不给出具体值的，将留在第一对尖括号中
+    =template <typename T1> class Test<int>=
+    NOTE: 部分具体化非常自由，它甚至允许这么玩
+    =template <typename T1> class Test<T1 *>=
+  - 编译器会匹配这些具体化的模版类，并选择与声明最相符的作为模版
+** 成员模版
+顾名思义，将模版作为类的成员
+可以将模版类作为模版类的成员，不管是私有成员还是公有成员都可以
+
+#+BEGIN_SRC C++
+  template <typename T>
+  class Test1
+  {
+  private:
+    template <typename V>
+    class Test2
+    {
+    private:
+      V item;
+    public:
+      Test2(V i = 0): item(i) {}
+      void show() {cout << item << endl;}
+    };
+    Test2<T> a;
+    Test2<double> b;
+
+  public:
+    Test1(T i = 0, double j = 0): a(i), b(j) {}
+    void show () {a.show(); b.show();}
+  };
+#+END_SRC
+
+有些编译器允许在类声明外面定义，这将会使使声明变成这个样子
+
+#+BEGIN_SRC C++
+  template <typename T>
+  class Test1
+  {
+  private:
+    class Test2;
+    Test2<T> a;
+    Test2<double> b;
+  public:
+    Test1(T i = 0, double j = 0): a(i), b(j) {}
+    void show () {a.show(); b.show();}
+  };
+
+  template<typename T>
+    typename<typename V>
+      class beta<T>::hold
+  {
+    //类声明
+  };
+#+END_SRC
+
+在类外面的Test2的类声明使用了一种嵌套的语法
+=template <typename T, typename V>=
+是不可以的，因为这两个类是包含关系，而不是并列关系
+** 将模版用作类型参数
+如题，这么玩的话，比较简单的模版类声明大概长这样
+
+#+BEGIN_SRC C++
+  template <template <typename T> class V>
+  class Test
+  {
+    //类声明
+  }
+#+END_SRC
+
+其中 =template <typename T> class= 都是类型
+=V= 才是参数，这说明在声明对象
+=Test<Stack> temp= 时， =Stack= 必须是模版类
+** 模版类和友元
+- 友元函数在这里有三类
+  1. 非模版友元函数
+  2. 约束模版友元函数
+  3. 非约束模版友元函数
+*** 非模版友元函数
+- 意思是说这个友元函数本身就是函数，不是函数模版，声明时和普通友元函数
+  一样
+- 问题是，调用友元函数时，针对不同类型的参数，友元函数怎么办
+- 下面是一种方便的解决方法（比较麻烦）
+
+  #+BEGIN_SRC C++
+    template <typename T>
+    class Test
+    {
+      j;
+    public:
+      friend void DoNothing (Test<T> &);
+      friend void DoNothingToo () {}
+    };
+
+    void DoNithing (Test<int> & i)
+    {
+      i.j;
+    }
+
+    void DoNothing (Test<double> & i)
+    {
+      i.j;
+    }
+  #+END_SRC
+
+- 提供不同类的显式具体化，或者说重载版本更合适一些？
+  - 好处是不用在类声明里面写一大堆重载声明
+*** 约束模版友元函数
+- 意思是这是个友元模版，不是函数了
+- 解决了非模版友元函数的麻烦，不用在写一大堆显式具体化的定义了
+  - 但至少还是要提供一个模版定义的，你不能指望编译器去猜你的意思
+- 主要分三步
+  1. 声明：声明友元模版，要在类声明之前（你知道我指的是包含这个友元模
+     版的类，对吧）
+  2. 声明：在类声明中声明友元模版，顺便定义好友元模版的类型参数与类声
+     明的类型参数的关系（这才是主要目的，不再类声明中定义关系，还能在
+     哪定义？）
+  3. 定义：给友元模版提供一个模版定义，这里的操作和一般的模版操作一样，
+     毕竟友元模版不是类成员，他就是个有特殊权限的普通模版
+- 下面是他大概的样子
+
+  #+BEGIN_SRC C++
+    template <typename T>
+    void DoNothing (T & i);
+
+    template <typename TT>
+    class Test
+    {
+    private:
+      int j;
+      static int c;
+    public:
+      friend void DoNothing <Test<TT>> (Test<TT> & i);
+    };
+
+    template <typename T>
+    int Test<T>::c = 0;
+
+    template <typename T>
+    void DoNothing (T & i)
+    {
+      i.j;
+    }
+  #+END_SRC
+
+- 注意静态变量的意义，他是同一个类共享的，也就是说 =Test<int>= 类就一
+  个 =Test<int> c= ， =Test<double>= 类就一个 =Test<double> c=
+*** 非约束模版友元函数
+- 类似于上面的，之所以称之为非约束，关键都在上面的第二步消失了，这种友
+  元模版的类型参数与类模版的类型参数没关系
+- 这个就两步
+  1. 声明：在类声明中声明友元模版，不处理声明他俩类型参数的关系
+  2. 定义：给友元模版提供一个模版定义
+- 下面是他大概的样子
+
+  #+BEGIN_SRC C++
+    template <typename T>
+    class Test
+    {
+      int j;
+    public:
+      template <typename C>
+      void DoNothing (C & );
+    };
+
+    template <typename C>
+    void DoNothing (C & i)
+    {
+      i.j;
+    }
+  #+END_SRC
+** 模版别名
+- 除了typedef这种一揽子解决问题方案，还有一种骨骼轻奇的解决方案
+- 大概长这样
+
+  #+BEGIN_SRC C++
+    template <typename T>
+    using array_12 = std::Array<T, 12>;
+
+    //用的时候这么用就行了
+    array_12 <double> test; // test 是一个double数组，有12个
+  #+END_SRC
